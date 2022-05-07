@@ -1,14 +1,13 @@
-namespace Sample.Components.CourierActivities
+namespace Sample.Components.CourierActivities;
+
+using MassTransit;
+
+
+public class PaymentActivityDefinition :
+    ActivityDefinition<PaymentActivity, PaymentArguments, PaymentLog>
 {
-    using MassTransit.Definition;
-
-
-    public class PaymentActivityDefinition :
-        ActivityDefinition<PaymentActivity, PaymentArguments, PaymentLog>
+    public PaymentActivityDefinition()
     {
-        public PaymentActivityDefinition()
-        {
-            ConcurrentMessageLimit = 20;
-        }
+        ConcurrentMessageLimit = 20;
     }
 }

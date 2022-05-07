@@ -1,12 +1,8 @@
-namespace Sample.Contracts
+namespace Sample.Contracts;
+
+public interface OrderFulfillmentFaulted
 {
-    using System;
+    Guid OrderId { get; }
 
-
-    public interface OrderFulfillmentFaulted
-    {
-        Guid OrderId { get; }
-
-        DateTime Timestamp { get; }
-    }
+    DateTime Timestamp { get; }
 }

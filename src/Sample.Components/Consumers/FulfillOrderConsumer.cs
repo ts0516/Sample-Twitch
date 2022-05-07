@@ -1,51 +1,47 @@
-namespace Sample.Components.Consumers
+namespace Sample.Components.Consumers;
+
+using Contracts;
+using MassTransit;
+using MassTransit.Courier.Contracts;
+
+
+public class FulfillOrderConsumer :
+    IConsumer<FulfillOrder>
 {
-    using System;
-    using System.Threading.Tasks;
-    using Contracts;
-    using MassTransit;
-    using MassTransit.Courier;
-    using MassTransit.Courier.Contracts;
-
-
-    public class FulfillOrderConsumer :
-        IConsumer<FulfillOrder>
+    public async Task Consume(ConsumeContext<FulfillOrder> context)
     {
-        public async Task Consume(ConsumeContext<FulfillOrder> context)
+        if (context.Message.CustomerNumber.StartsWith("INVALID"))
         {
-            if (context.Message.CustomerNumber.StartsWith("INVALID"))
-            {
-                throw new InvalidOperationException("We tried, but the customer is invalid");
-            }
+            throw new InvalidOperationException("We tried, but the customer is invalid");
+        }
 
-            var builder = new RoutingSlipBuilder(NewId.NextGuid());
+        var builder = new RoutingSlipBuilder(NewId.NextGuid());
 
-            builder.AddActivity("AllocateInventory", new Uri("queue:allocate-inventory_execute"), new
+        builder.AddActivity("AllocateInventory", new Uri("queue:allocate-inventory_execute"), new
+        {
+            ItemNumber = "ITEM123",
+            Quantity = 10.0m
+        });
+
+        builder.AddActivity("PaymentActivity", new Uri("queue:payment_execute"),
+            new
             {
-                ItemNumber = "ITEM123",
-                Quantity = 10.0m
+                CardNumber = context.Message.PaymentCardNumber ?? "5999-1234-5678-9012",
+                Amount = 99.95m
             });
 
-            builder.AddActivity("PaymentActivity", new Uri("queue:payment_execute"),
-                new
-                {
-                    CardNumber = context.Message.PaymentCardNumber ?? "5999-1234-5678-9012",
-                    Amount = 99.95m
-                });
+        builder.AddVariable("OrderId", context.Message.OrderId);
 
-            builder.AddVariable("OrderId", context.Message.OrderId);
+        await builder.AddSubscription(context.SourceAddress,
+            RoutingSlipEvents.Faulted | RoutingSlipEvents.Supplemental,
+            RoutingSlipEventContents.None, x => x.Send<OrderFulfillmentFaulted>(new { context.Message.OrderId }));
 
-            await builder.AddSubscription(context.SourceAddress,
-                RoutingSlipEvents.Faulted | RoutingSlipEvents.Supplemental,
-                RoutingSlipEventContents.None, x => x.Send<OrderFulfillmentFaulted>(new {context.Message.OrderId}));
+        await builder.AddSubscription(context.SourceAddress,
+            RoutingSlipEvents.Completed | RoutingSlipEvents.Supplemental,
+            RoutingSlipEventContents.None, x => x.Send<OrderFulfillmentCompleted>(new { context.Message.OrderId }));
 
-            await builder.AddSubscription(context.SourceAddress,
-                RoutingSlipEvents.Completed | RoutingSlipEvents.Supplemental,
-                RoutingSlipEventContents.None, x => x.Send<OrderFulfillmentCompleted>(new {context.Message.OrderId}));
+        var routingSlip = builder.Build();
 
-            var routingSlip = builder.Build();
-
-            await context.Execute(routingSlip);
-        }
+        await context.Execute(routingSlip);
     }
 }

@@ -1,37 +1,34 @@
-namespace Sample.Components.CourierActivities
+namespace Sample.Components.CourierActivities;
+
+using MassTransit;
+
+
+public class PaymentActivity :
+    IActivity<PaymentArguments, PaymentLog>
 {
-    using System;
-    using System.Threading.Tasks;
-    using MassTransit.Courier;
+    static readonly Random _random = new Random();
 
-
-    public class PaymentActivity :
-        IActivity<PaymentArguments, PaymentLog>
+    public async Task<ExecutionResult> Execute(ExecuteContext<PaymentArguments> context)
     {
-        static readonly Random _random = new Random();
+        var cardNumber = context.Arguments.CardNumber;
+        if (string.IsNullOrEmpty(cardNumber))
+            throw new ArgumentNullException(nameof(cardNumber));
 
-        public async Task<ExecutionResult> Execute(ExecuteContext<PaymentArguments> context)
+        await Task.Delay(1000);
+        await Task.Delay(_random.Next(10000));
+
+        if (cardNumber.StartsWith("5999"))
         {
-            string cardNumber = context.Arguments.CardNumber;
-            if (string.IsNullOrEmpty(cardNumber))
-                throw new ArgumentNullException(nameof(cardNumber));
-
-            await Task.Delay(1000);
-            await Task.Delay(_random.Next(10000));
-
-            if (cardNumber.StartsWith("5999"))
-            {
-                throw new InvalidOperationException("The card number was invalid");
-            }
-
-            return context.Completed(new {AuthorizationCode = "77777"});
+            throw new InvalidOperationException("The card number was invalid");
         }
 
-        public async Task<CompensationResult> Compensate(CompensateContext<PaymentLog> context)
-        {
-            await Task.Delay(100);
+        return context.Completed(new { AuthorizationCode = "77777" });
+    }
 
-            return context.Compensated();
-        }
+    public async Task<CompensationResult> Compensate(CompensateContext<PaymentLog> context)
+    {
+        await Task.Delay(100);
+
+        return context.Compensated();
     }
 }

@@ -1,26 +1,22 @@
-namespace Sample.Components
+namespace Sample.Components;
+
+using Contracts;
+using MassTransit;
+
+
+public class ContainerScopedFilter :
+    IFilter<ConsumeContext<SubmitOrder>>
 {
-    using System;
-    using System.Threading.Tasks;
-    using Contracts;
-    using GreenPipes;
-    using MassTransit;
-
-
-    public class ContainerScopedFilter :
-        IFilter<ConsumeContext<SubmitOrder>>
+    public Task Send(ConsumeContext<SubmitOrder> context, IPipe<ConsumeContext<SubmitOrder>> next)
     {
-        public Task Send(ConsumeContext<SubmitOrder> context, IPipe<ConsumeContext<SubmitOrder>> next)
-        {
-            var provider = context.GetPayload<IServiceProvider>();
+        var provider = context.GetPayload<IServiceProvider>();
 
-            Console.WriteLine("Filter ran");
+        Console.WriteLine("Filter ran");
 
-            return next.Send(context);
-        }
+        return next.Send(context);
+    }
 
-        public void Probe(ProbeContext context)
-        {
-        }
+    public void Probe(ProbeContext context)
+    {
     }
 }

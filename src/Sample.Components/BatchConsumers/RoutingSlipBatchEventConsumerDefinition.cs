@@ -1,22 +1,19 @@
-namespace Sample.Components.BatchConsumers
+namespace Sample.Components.BatchConsumers;
+
+using MassTransit;
+
+
+public class RoutingSlipBatchEventConsumerDefinition :
+    ConsumerDefinition<RoutingSlipBatchEventConsumer>
 {
-    using MassTransit;
-    using MassTransit.ConsumeConfigurators;
-    using MassTransit.Definition;
-
-
-    public class RoutingSlipBatchEventConsumerDefinition :
-        ConsumerDefinition<RoutingSlipBatchEventConsumer>
+    public RoutingSlipBatchEventConsumerDefinition()
     {
-        public RoutingSlipBatchEventConsumerDefinition()
-        {
-            Endpoint(e => e.PrefetchCount = 20);
-        }
+        Endpoint(e => e.PrefetchCount = 20);
+    }
 
-        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-            IConsumerConfigurator<RoutingSlipBatchEventConsumer> consumerConfigurator)
-        {
-            consumerConfigurator.Options<BatchOptions>(o => o.SetMessageLimit(10).SetTimeLimit(100));
-        }
+    protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<RoutingSlipBatchEventConsumer> consumerConfigurator)
+    {
+        consumerConfigurator.Options<BatchOptions>(o => o.SetMessageLimit(10).SetTimeLimit(100));
     }
 }

@@ -1,34 +1,31 @@
-namespace Sample.Api.Controllers
+namespace Sample.Api.Controllers;
+
+using Contracts;
+using MassTransit;
+using Microsoft.AspNetCore.Mvc;
+
+
+[ApiController]
+[Route("[controller]")]
+public class CustomerController :
+    ControllerBase
 {
-    using System;
-    using System.Threading.Tasks;
-    using Contracts;
-    using MassTransit;
-    using Microsoft.AspNetCore.Mvc;
+    readonly IPublishEndpoint _publishEndpoint;
 
-
-    [ApiController]
-    [Route("[controller]")]
-    public class CustomerController :
-        ControllerBase
+    public CustomerController(IPublishEndpoint publishEndpoint)
     {
-        readonly IPublishEndpoint _publishEndpoint;
+        _publishEndpoint = publishEndpoint;
+    }
 
-        public CustomerController(IPublishEndpoint publishEndpoint)
+    [HttpDelete]
+    public async Task<IActionResult> Delete(Guid id, string customerNumber)
+    {
+        await _publishEndpoint.Publish<CustomerAccountClosed>(new
         {
-            _publishEndpoint = publishEndpoint;
-        }
+            CustomerId = id,
+            CustomerNumber = customerNumber
+        });
 
-        [HttpDelete]
-        public async Task<IActionResult> Delete(Guid id, string customerNumber)
-        {
-            await _publishEndpoint.Publish<CustomerAccountClosed>(new
-            {
-                CustomerId = id,
-                CustomerNumber = customerNumber
-            });
-
-            return Ok();
-        }
+        return Ok();
     }
 }

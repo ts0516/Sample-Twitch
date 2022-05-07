@@ -1,31 +1,28 @@
-namespace Sample.Components.BatchConsumers
+namespace Sample.Components.BatchConsumers;
+
+using MassTransit;
+using MassTransit.Courier.Contracts;
+using Microsoft.Extensions.Logging;
+
+
+public class RoutingSlipBatchEventConsumer :
+    IConsumer<Batch<RoutingSlipCompleted>>
 {
-    using System.Linq;
-    using System.Threading.Tasks;
-    using MassTransit;
-    using MassTransit.Courier.Contracts;
-    using Microsoft.Extensions.Logging;
+    readonly ILogger<RoutingSlipBatchEventConsumer> _logger;
 
-
-    public class RoutingSlipBatchEventConsumer :
-        IConsumer<Batch<RoutingSlipCompleted>>
+    public RoutingSlipBatchEventConsumer(ILogger<RoutingSlipBatchEventConsumer> logger)
     {
-        readonly ILogger<RoutingSlipBatchEventConsumer> _logger;
+        _logger = logger;
+    }
 
-        public RoutingSlipBatchEventConsumer(ILogger<RoutingSlipBatchEventConsumer> logger)
+    public Task Consume(ConsumeContext<Batch<RoutingSlipCompleted>> context)
+    {
+        if (_logger.IsEnabled(LogLevel.Information))
         {
-            _logger = logger;
+            _logger.Log(LogLevel.Information, "Routing Slips Completed: {TrackingNumbers}",
+                string.Join(", ", context.Message.Select(x => x.Message.TrackingNumber)));
         }
 
-        public Task Consume(ConsumeContext<Batch<RoutingSlipCompleted>> context)
-        {
-            if (_logger.IsEnabled(LogLevel.Information))
-            {
-                _logger.Log(LogLevel.Information, "Routing Slips Completed: {TrackingNumbers}",
-                    string.Join(", ", context.Message.Select(x => x.Message.TrackingNumber)));
-            }
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

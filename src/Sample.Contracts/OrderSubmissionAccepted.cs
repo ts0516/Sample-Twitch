@@ -1,13 +1,9 @@
-namespace Sample.Contracts
+namespace Sample.Contracts;
+
+public interface OrderSubmissionAccepted
 {
-    using System;
+    Guid OrderId { get; }
+    DateTime Timestamp { get; }
 
-
-    public interface OrderSubmissionAccepted
-    {
-        Guid OrderId { get; }
-        DateTime Timestamp { get; }
-
-        string CustomerNumber { get; }
-    }
+    string CustomerNumber { get; }
 }

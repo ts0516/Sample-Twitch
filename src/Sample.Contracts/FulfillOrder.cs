@@ -1,13 +1,9 @@
-namespace Sample.Contracts
+namespace Sample.Contracts;
+
+public interface FulfillOrder
 {
-    using System;
+    Guid OrderId { get; }
 
-
-    public interface FulfillOrder
-    {
-        Guid OrderId { get; }
-
-        string CustomerNumber { get; }
-        string PaymentCardNumber { get; }
-    }
+    string CustomerNumber { get; }
+    string PaymentCardNumber { get; }
 }

@@ -1,10 +1,9 @@
-namespace Sample.Contracts
+namespace Sample.Contracts;
+
+using System;
+
+
+public interface CheckOrder
 {
-    using System;
-
-
-    public interface CheckOrder
-    {
-        Guid OrderId { get; }
-    }
+    Guid OrderId { get; }
 }

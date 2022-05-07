@@ -1,184 +1,179 @@
-namespace Sample.Components.Tests
+namespace Sample.Components.Tests;
+
+using Contracts;
+using MassTransit;
+using MassTransit.SagaStateMachine;
+using MassTransit.Testing;
+using MassTransit.Visualizer;
+using NUnit.Framework;
+using StateMachines;
+
+
+[TestFixture]
+public class Submitting_an_order
 {
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Automatonymous.Graphing;
-    using Automatonymous.Visualizer;
-    using Contracts;
-    using MassTransit;
-    using MassTransit.Testing;
-    using NUnit.Framework;
-    using StateMachines;
-
-
-    [TestFixture]
-    public class Submitting_an_order
+    [Test]
+    public async Task Should_create_a_state_instance()
     {
-        [Test]
-        public async Task Should_create_a_state_instance()
+        var orderStateMachine = new OrderStateMachine();
+
+        var harness = new InMemoryTestHarness();
+        var saga = harness.StateMachineSaga<OrderState, OrderStateMachine>(orderStateMachine);
+
+        await harness.Start();
+        try
         {
-            var orderStateMachine = new OrderStateMachine();
+            var orderId = NewId.NextGuid();
 
-            var harness = new InMemoryTestHarness();
-            var saga = harness.StateMachineSaga<OrderState, OrderStateMachine>(orderStateMachine);
-
-            await harness.Start();
-            try
+            await harness.Bus.Publish<OrderSubmitted>(new
             {
-                var orderId = NewId.NextGuid();
+                OrderId = orderId,
+                InVar.Timestamp,
+                CustomerNumber = "12345"
+            });
 
-                await harness.Bus.Publish<OrderSubmitted>(new
-                {
-                    OrderId = orderId,
-                    InVar.Timestamp,
-                    CustomerNumber = "12345"
-                });
+            Assert.That(saga.Created.Select(x => x.CorrelationId == orderId).Any(), Is.True);
 
-                Assert.That(saga.Created.Select(x => x.CorrelationId == orderId).Any(), Is.True);
+            var instanceId = await saga.Exists(orderId, x => x.Submitted);
+            Assert.That(instanceId, Is.Not.Null);
 
-                var instanceId = await saga.Exists(orderId, x => x.Submitted);
-                Assert.That(instanceId, Is.Not.Null);
-
-                var instance = saga.Sagas.Contains(instanceId.Value);
-                Assert.That(instance.CustomerNumber, Is.EqualTo("12345"));
-            }
-            finally
-            {
-                await harness.Stop();
-            }
+            var instance = instanceId.HasValue ? saga.Sagas.Contains(instanceId.Value) : null;
+            Assert.That(instance?.CustomerNumber, Is.EqualTo("12345"));
         }
-
-        [Test]
-        public async Task Should_respond_to_status_checks()
+        finally
         {
-            var orderStateMachine = new OrderStateMachine();
-
-            var harness = new InMemoryTestHarness();
-            var saga = harness.StateMachineSaga<OrderState, OrderStateMachine>(orderStateMachine);
-
-            await harness.Start();
-            try
-            {
-                var orderId = NewId.NextGuid();
-
-                await harness.Bus.Publish<OrderSubmitted>(new
-                {
-                    OrderId = orderId,
-                    InVar.Timestamp,
-                    CustomerNumber = "12345"
-                });
-
-                Assert.That(saga.Created.Select(x => x.CorrelationId == orderId).Any(), Is.True);
-
-                var instanceId = await saga.Exists(orderId, x => x.Submitted);
-                Assert.That(instanceId, Is.Not.Null);
-
-                var requestClient = await harness.ConnectRequestClient<CheckOrder>();
-
-                var response = await requestClient.GetResponse<OrderStatus>(new {OrderId = orderId});
-
-                Assert.That(response.Message.State, Is.EqualTo(orderStateMachine.Submitted.Name));
-            }
-            finally
-            {
-                await harness.Stop();
-            }
+            await harness.Stop();
         }
+    }
 
-        [Test]
-        public async Task Should_cancel_when_customer_account_closed()
+    [Test]
+    public async Task Should_respond_to_status_checks()
+    {
+        var orderStateMachine = new OrderStateMachine();
+
+        var harness = new InMemoryTestHarness();
+        var saga = harness.StateMachineSaga<OrderState, OrderStateMachine>(orderStateMachine);
+
+        await harness.Start();
+        try
         {
-            var orderStateMachine = new OrderStateMachine();
+            var orderId = NewId.NextGuid();
 
-            var harness = new InMemoryTestHarness();
-            var saga = harness.StateMachineSaga<OrderState, OrderStateMachine>(orderStateMachine);
-
-            await harness.Start();
-            try
+            await harness.Bus.Publish<OrderSubmitted>(new
             {
-                var orderId = NewId.NextGuid();
+                OrderId = orderId,
+                InVar.Timestamp,
+                CustomerNumber = "12345"
+            });
 
-                await harness.Bus.Publish<OrderSubmitted>(new
-                {
-                    OrderId = orderId,
-                    InVar.Timestamp,
-                    CustomerNumber = "12345"
-                });
+            Assert.That(saga.Created.Select(x => x.CorrelationId == orderId).Any(), Is.True);
 
-                Assert.That(saga.Created.Select(x => x.CorrelationId == orderId).Any(), Is.True);
+            var instanceId = await saga.Exists(orderId, x => x.Submitted);
+            Assert.That(instanceId, Is.Not.Null);
 
-                var instanceId = await saga.Exists(orderId, x => x.Submitted);
-                Assert.That(instanceId, Is.Not.Null);
+            var requestClient = await harness.ConnectRequestClient<CheckOrder>();
 
-                await harness.Bus.Publish<CustomerAccountClosed>(new
-                {
-                    CustomerId = InVar.Id,
-                    CustomerNumber = "12345"
-                });
+            var response = await requestClient.GetResponse<OrderStatus>(new { OrderId = orderId });
 
-                instanceId = await saga.Exists(orderId, x => x.Canceled);
-                Assert.That(instanceId, Is.Not.Null);
-            }
-            finally
-            {
-                await harness.Stop();
-            }
+            Assert.That(response.Message.State, Is.EqualTo(orderStateMachine.Submitted?.Name));
         }
-
-        [Test]
-        public async Task Should_accept_when_order_is_accepted()
+        finally
         {
-            var orderStateMachine = new OrderStateMachine();
-
-            var harness = new InMemoryTestHarness();
-            var saga = harness.StateMachineSaga<OrderState, OrderStateMachine>(orderStateMachine);
-
-            await harness.Start();
-            try
-            {
-                var orderId = NewId.NextGuid();
-
-                await harness.Bus.Publish<OrderSubmitted>(new
-                {
-                    OrderId = orderId,
-                    InVar.Timestamp,
-                    CustomerNumber = "12345"
-                });
-
-                Assert.That(saga.Created.Select(x => x.CorrelationId == orderId).Any(), Is.True);
-
-                var instanceId = await saga.Exists(orderId, x => x.Submitted);
-                Assert.That(instanceId, Is.Not.Null);
-
-                await harness.Bus.Publish<OrderAccepted>(new
-                {
-                    OrderId = orderId,
-                    InVar.Timestamp,
-                });
-
-                instanceId = await saga.Exists(orderId, x => x.Accepted);
-                Assert.That(instanceId, Is.Not.Null);
-            }
-            finally
-            {
-                await harness.Stop();
-            }
+            await harness.Stop();
         }
+    }
 
-        [Test]
-        public void Show_me_the_state_machine()
+    [Test]
+    public async Task Should_cancel_when_customer_account_closed()
+    {
+        var orderStateMachine = new OrderStateMachine();
+
+        var harness = new InMemoryTestHarness();
+        var saga = harness.StateMachineSaga<OrderState, OrderStateMachine>(orderStateMachine);
+
+        await harness.Start();
+        try
         {
-            var orderStateMachine = new OrderStateMachine();
+            var orderId = NewId.NextGuid();
 
-            var graph = orderStateMachine.GetGraph();
+            await harness.Bus.Publish<OrderSubmitted>(new
+            {
+                OrderId = orderId,
+                InVar.Timestamp,
+                CustomerNumber = "12345"
+            });
 
-            var generator = new StateMachineGraphvizGenerator(graph);
+            Assert.That(saga.Created.Select(x => x.CorrelationId == orderId).Any(), Is.True);
 
-            string dots = generator.CreateDotFile();
+            var instanceId = await saga.Exists(orderId, x => x.Submitted);
+            Assert.That(instanceId, Is.Not.Null);
 
-            Console.WriteLine(dots);
+            await harness.Bus.Publish<CustomerAccountClosed>(new
+            {
+                CustomerId = InVar.Id,
+                CustomerNumber = "12345"
+            });
 
+            instanceId = await saga.Exists(orderId, x => x.Canceled);
+            Assert.That(instanceId, Is.Not.Null);
         }
+        finally
+        {
+            await harness.Stop();
+        }
+    }
+
+    [Test]
+    public async Task Should_accept_when_order_is_accepted()
+    {
+        var orderStateMachine = new OrderStateMachine();
+
+        var harness = new InMemoryTestHarness();
+        var saga = harness.StateMachineSaga<OrderState, OrderStateMachine>(orderStateMachine);
+
+        await harness.Start();
+        try
+        {
+            var orderId = NewId.NextGuid();
+
+            await harness.Bus.Publish<OrderSubmitted>(new
+            {
+                OrderId = orderId,
+                InVar.Timestamp,
+                CustomerNumber = "12345"
+            });
+
+            Assert.That(saga.Created.Select(x => x.CorrelationId == orderId).Any(), Is.True);
+
+            var instanceId = await saga.Exists(orderId, x => x.Submitted);
+            Assert.That(instanceId, Is.Not.Null);
+
+            await harness.Bus.Publish<OrderAccepted>(new
+            {
+                OrderId = orderId,
+                InVar.Timestamp,
+            });
+
+            instanceId = await saga.Exists(orderId, x => x.Accepted);
+            Assert.That(instanceId, Is.Not.Null);
+        }
+        finally
+        {
+            await harness.Stop();
+        }
+    }
+
+    [Test]
+    public void Show_me_the_state_machine()
+    {
+        var orderStateMachine = new OrderStateMachine();
+
+        var graph = orderStateMachine.GetGraph();
+
+        var generator = new StateMachineGraphvizGenerator(graph);
+
+        var dots = generator.CreateDotFile();
+
+        Console.WriteLine(dots);
     }
 }

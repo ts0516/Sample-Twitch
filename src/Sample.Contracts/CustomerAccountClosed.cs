@@ -1,11 +1,7 @@
-namespace Sample.Contracts
+namespace Sample.Contracts;
+
+public interface CustomerAccountClosed
 {
-    using System;
-
-
-    public interface CustomerAccountClosed
-    {
-        Guid CustomerId { get; }
-        string CustomerNumber { get; }
-    }
+    Guid CustomerId { get; }
+    string CustomerNumber { get; }
 }

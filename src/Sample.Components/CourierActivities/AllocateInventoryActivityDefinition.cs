@@ -1,14 +1,13 @@
-namespace Sample.Components.CourierActivities
+namespace Sample.Components.CourierActivities;
+
+using MassTransit;
+
+
+public class AllocateInventoryActivityDefinition :
+    ActivityDefinition<AllocateInventoryActivity, AllocateInventoryArguments, AllocateInventoryLog>
 {
-    using MassTransit.Definition;
-
-
-    public class AllocateInventoryActivityDefinition :
-        ActivityDefinition<AllocateInventoryActivity, AllocateInventoryArguments, AllocateInventoryLog>
+    public AllocateInventoryActivityDefinition()
     {
-        public AllocateInventoryActivityDefinition()
-        {
-            ConcurrentMessageLimit = 10;
-        }
+        ConcurrentMessageLimit = 10;
     }
 }

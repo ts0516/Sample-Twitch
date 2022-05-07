@@ -1,16 +1,14 @@
-namespace Sample.Components.Consumers
+namespace Sample.Components.Consumers;
+
+using Contracts;
+using MassTransit;
+
+
+public class FaultConsumer :
+    IConsumer<Fault<FulfillOrder>>
 {
-    using System.Threading.Tasks;
-    using Contracts;
-    using MassTransit;
-
-
-    public class FaultConsumer :
-        IConsumer<Fault<FulfillOrder>>
+    public Task Consume(ConsumeContext<Fault<FulfillOrder>> context)
     {
-        public Task Consume(ConsumeContext<Fault<FulfillOrder>> context)
-        {
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

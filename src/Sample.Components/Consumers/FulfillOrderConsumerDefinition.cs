@@ -1,31 +1,26 @@
-namespace Sample.Components.Consumers
+namespace Sample.Components.Consumers;
+
+using MassTransit;
+
+
+public class FulfillOrderConsumerDefinition :
+    ConsumerDefinition<FulfillOrderConsumer>
 {
-    using System;
-    using GreenPipes;
-    using MassTransit;
-    using MassTransit.ConsumeConfigurators;
-    using MassTransit.Definition;
-
-
-    public class FulfillOrderConsumerDefinition :
-        ConsumerDefinition<FulfillOrderConsumer>
+    public FulfillOrderConsumerDefinition()
     {
-        public FulfillOrderConsumerDefinition()
+        ConcurrentMessageLimit = 20;
+    }
+
+    protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<FulfillOrderConsumer> consumerConfigurator)
+    {
+        endpointConfigurator.UseMessageRetry(r =>
         {
-            ConcurrentMessageLimit = 20;
-        }
+            r.Ignore<InvalidOperationException>();
 
-        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-            IConsumerConfigurator<FulfillOrderConsumer> consumerConfigurator)
-        {
-            endpointConfigurator.UseMessageRetry(r =>
-            {
-                r.Ignore<InvalidOperationException>();
+            r.Interval(3, 1000);
+        });
 
-                r.Interval(3, 1000);
-            });
-
-            endpointConfigurator.DiscardFaultedMessages();
-        }
+        endpointConfigurator.DiscardFaultedMessages();
     }
 }

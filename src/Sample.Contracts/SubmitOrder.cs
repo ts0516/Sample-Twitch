@@ -1,17 +1,16 @@
-﻿namespace Sample.Contracts
+﻿namespace Sample.Contracts;
+
+using System;
+using MassTransit;
+
+
+public interface SubmitOrder
 {
-    using System;
-    using MassTransit;
+    Guid OrderId { get; }
+    DateTime Timestamp { get; }
 
+    string CustomerNumber { get; }
+    string PaymentCardNumber { get; }
 
-    public interface SubmitOrder
-    {
-        Guid OrderId { get; }
-        DateTime Timestamp { get; }
-
-        string CustomerNumber { get; }
-        string PaymentCardNumber { get; }
-
-        MessageData<string> Notes { get; }
-    }
+    MessageData<string> Notes { get; }
 }

@@ -1,7 +1,6 @@
-namespace Sample.Components.CourierActivities
+namespace Sample.Components.CourierActivities;
+
+public interface PaymentLog
 {
-    public interface PaymentLog
-    {
-        string AuthorizationCode { get; }
-    }
+    string AuthorizationCode { get; }
 }

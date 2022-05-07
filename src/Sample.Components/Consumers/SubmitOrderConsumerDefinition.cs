@@ -1,31 +1,26 @@
-namespace Sample.Components.Consumers
+namespace Sample.Components.Consumers;
+
+using Contracts;
+using MassTransit;
+
+
+public class SubmitOrderConsumerDefinition :
+    ConsumerDefinition<SubmitOrderConsumer>
 {
-    using System;
-    using Contracts;
-    using GreenPipes;
-    using MassTransit;
-    using MassTransit.ConsumeConfigurators;
-    using MassTransit.Definition;
+    readonly IServiceProvider _serviceProvider;
 
-
-    public class SubmitOrderConsumerDefinition :
-        ConsumerDefinition<SubmitOrderConsumer>
+    public SubmitOrderConsumerDefinition(IServiceProvider serviceProvider)
     {
-        readonly IServiceProvider _serviceProvider;
+        _serviceProvider = serviceProvider;
+        ConcurrentMessageLimit = 20;
+    }
 
-        public SubmitOrderConsumerDefinition(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-            ConcurrentMessageLimit = 20;
-        }
+    protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<SubmitOrderConsumer> consumerConfigurator)
+    {
+        endpointConfigurator.UseMessageRetry(r => r.Interval(3, 1000));
+        endpointConfigurator.UseServiceScope(_serviceProvider);
 
-        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-            IConsumerConfigurator<SubmitOrderConsumer> consumerConfigurator)
-        {
-            endpointConfigurator.UseMessageRetry(r => r.Interval(3, 1000));
-            endpointConfigurator.UseServiceScope(_serviceProvider);
-
-            consumerConfigurator.Message<SubmitOrder>(m => m.UseFilter(new ContainerScopedFilter()));
-        }
+        consumerConfigurator.Message<SubmitOrder>(m => m.UseFilter(new ContainerScopedFilter()));
     }
 }

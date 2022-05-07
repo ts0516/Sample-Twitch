@@ -1,10 +1,6 @@
-namespace Sample.Components.CourierActivities
+namespace Sample.Components.CourierActivities;
+
+public interface AllocateInventoryLog
 {
-    using System;
-
-
-    public interface AllocateInventoryLog
-    {
-        Guid AllocationId { get; }
-    }
+    Guid AllocationId { get; }
 }

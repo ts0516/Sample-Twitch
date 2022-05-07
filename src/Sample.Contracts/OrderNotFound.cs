@@ -1,10 +1,6 @@
-namespace Sample.Contracts
+namespace Sample.Contracts;
+
+public interface OrderNotFound
 {
-    using System;
-
-
-    public interface OrderNotFound
-    {
-        Guid OrderId { get; }
-    }
+    Guid OrderId { get; }
 }

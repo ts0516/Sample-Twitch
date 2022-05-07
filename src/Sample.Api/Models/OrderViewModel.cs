@@ -1,20 +1,18 @@
-namespace Sample.Api.Models
+namespace Sample.Api.Models;
+
+using System.ComponentModel.DataAnnotations;
+
+
+public class OrderViewModel
 {
-    using System;
-    using System.ComponentModel.DataAnnotations;
+    [Required]
+    public Guid Id { get; set; }
 
+    [Required]
+    public string? CustomerNumber { get; set; }
 
-    public class OrderViewModel
-    {
-        [Required]
-        public Guid Id { get; set; }
+    [Required]
+    public string? PaymentCardNumber { get; set; }
 
-        [Required]
-        public string CustomerNumber { get; set; }
-
-        [Required]
-        public string PaymentCardNumber { get; set; }
-
-        public string Notes { get; set; }
-    }
+    public string? Notes { get; set; }
 }

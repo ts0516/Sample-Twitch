@@ -25,25 +25,22 @@ services:
   rabbitmq:
     image: masstransit/rabbitmq:latest
     networks:
-     - twitch
+      - twitch
     ports:
-     - "5672:5672"
-     - "15672:15672"
-     - "15692:15692"
+      - "5672:5672"
+      - "15672:15672"
+      - "15692:15692"
     healthcheck:
-        timeout: 5s
-        interval: 5s
-        retries: 10
-        test:
-          - "CMD"
-          - "rabbitmqctl"
-          - "status" 
+      timeout: 5s
+      interval: 5s
+      retries: 10
+      test: [ "CMD", "rabbitmqctl", "status" ]
   sqlserver:
     image: masstransit/sqlserver-quartz:latest
     networks:
-     - twitch
+      - twitch
     ports:
-      - 1433:1433
+      - "1433:1433"
   quartz:
     image: masstransit/quartz:latest
     environment:
@@ -52,21 +49,21 @@ services:
       MT_Scheduler: 'quartz'
       MT_Quartz__ConnectionString: 'Server=tcp:sqlserver;Database=quartznet;Persist Security Info=False;User ID=sa;Password=Quartz!DockerP4ss;Encrypt=False;TrustServerCertificate=True;'
     networks:
-     - twitch
+      - twitch
     ports:
-     - "5002:80"
+      - "5002:80"
   redis:
     image: redis
     networks:
-     - twitch
+      - twitch
     ports:
       - "6379:6379"
   mongo:
     image: "mongo"
     networks:
-     - twitch
+      - twitch
     ports:
-    - '27017-27019:27017-27019'
+      - '27017-27019:27017-27019'
   warehouse:
     image: twitch/warehouse:latest
     build:
@@ -77,9 +74,9 @@ services:
       - MT_Prometheus=warehouse
       - MT_Scheduler=quartz
     networks:
-     - twitch
+      - twitch
     ports:
-     - "5004:80"
+      - "5004:80"
   sample:
     image: twitch/sample:latest
     build:
@@ -90,9 +87,9 @@ services:
       - MT_Prometheus=sample
       - MT_Scheduler=quartz
     networks:
-     - twitch
+      - twitch
     ports:
-     - "5006:80"
+      - "5006:80"
   api:
     image: twitch/api:latest
     build:
@@ -103,7 +100,6 @@ services:
       - MT_Prometheus=sample
       - MT_Scheduler=quartz
     networks:
-     - twitch
+      - twitch
     ports:
-     - "5000:80"
-    
+      - "5000:80"
