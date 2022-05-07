@@ -38,7 +38,7 @@ var host = Host.CreateDefaultBuilder(args)
         if (args is { Length: > 0 })
             config.AddCommandLine(args);
     })
-    .ConfigureServices((hostContext, services) =>
+    .ConfigureServices((_, services) =>
     {
         services.AddScoped<AcceptOrderActivity>();
 

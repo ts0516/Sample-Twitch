@@ -1,12 +1,8 @@
-namespace Warehouse.Contracts
+namespace Warehouse.Contracts;
+
+public interface AllocationReleaseRequested
 {
-    using System;
+    Guid AllocationId { get; }
 
-
-    public interface AllocationReleaseRequested
-    {
-        Guid AllocationId { get; }
-
-        string Reason { get; }
-    }
+    string Reason { get; }
 }

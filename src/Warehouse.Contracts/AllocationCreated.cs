@@ -1,11 +1,7 @@
-namespace Warehouse.Contracts
+namespace Warehouse.Contracts;
+
+public interface AllocationCreated
 {
-    using System;
-
-
-    public interface AllocationCreated
-    {
-        Guid AllocationId { get; }
-        TimeSpan HoldDuration { get; }
-    }
+    Guid AllocationId { get; }
+    TimeSpan HoldDuration { get; }
 }

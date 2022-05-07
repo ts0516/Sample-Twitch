@@ -1,13 +1,9 @@
-﻿namespace Warehouse.Contracts
+﻿namespace Warehouse.Contracts;
+
+public interface AllocateInventory
 {
-    using System;
+    Guid AllocationId { get; }
 
-
-    public interface AllocateInventory
-    {
-        Guid AllocationId { get; }
-
-        string ItemNumber { get; }
-        decimal Quantity { get; }
-    }
+    string ItemNumber { get; }
+    decimal Quantity { get; }
 }

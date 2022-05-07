@@ -1,10 +1,6 @@
-namespace Warehouse.Contracts
+namespace Warehouse.Contracts;
+
+public interface AllocationHoldDurationExpired
 {
-    using System;
-
-
-    public interface AllocationHoldDurationExpired
-    {
-        Guid AllocationId { get; }
-    }
+    Guid AllocationId { get; }
 }

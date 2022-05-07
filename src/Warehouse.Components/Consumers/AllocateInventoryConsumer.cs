@@ -1,27 +1,25 @@
-﻿namespace Warehouse.Components.Consumers
+﻿namespace Warehouse.Components.Consumers;
+
+using Contracts;
+using MassTransit;
+
+
+public class AllocateInventoryConsumer :
+    IConsumer<AllocateInventory>
 {
-    using System.Threading.Tasks;
-    using Contracts;
-    using MassTransit;
-
-
-    public class AllocateInventoryConsumer :
-        IConsumer<AllocateInventory>
+    public async Task Consume(ConsumeContext<AllocateInventory> context)
     {
-        public async Task Consume(ConsumeContext<AllocateInventory> context)
+        await context.Publish<AllocationCreated>(new
         {
-            await context.Publish<AllocationCreated>(new
-            {
-                context.Message.AllocationId,
-                HoldDuration = 15000,
-            });
+            context.Message.AllocationId,
+            HoldDuration = 15000,
+        });
 
-            await context.RespondAsync<InventoryAllocated>(new
-            {
-                context.Message.AllocationId,
-                context.Message.ItemNumber,
-                context.Message.Quantity
-            });
-        }
+        await context.RespondAsync<InventoryAllocated>(new
+        {
+            context.Message.AllocationId,
+            context.Message.ItemNumber,
+            context.Message.Quantity
+        });
     }
 }
